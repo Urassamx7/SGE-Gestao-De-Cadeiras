@@ -1,9 +1,10 @@
 const express = require('express');
 require('dotenv').config();
-
 const mysql = require('mysql2');
 const app = express();
 const port = 3000;
+
+app.use(express.json()); 
 
 // Configuração da pool de conexão para MySQL
 const pool = mysql.createPool({
@@ -23,8 +24,40 @@ pool.getConnection((err, connection) => {
   connection.release(); // Libera a conexão
 });
 
-app.get('/', (req, res) => {
-  res.send('Hello, World!');
+// Rota para criar uma avaliação
+app.post('/criar-avaliacao', (req, res) => {
+  const { curso_id, cadeira_id, ano, nome_avaliacao, peso, exame_normal, exame_recorrencia } = req.body;
+
+  const query = `
+    INSERT INTO avaliacoes (curso_id, cadeira_id, ano, nome_avaliacao, peso, exame_normal, exame_recorrencia, created_at, updated_at) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+  `;
+
+  pool.query(query, [curso_id, cadeira_id, ano, nome_avaliacao, peso, exame_normal, exame_recorrencia], (err, results) => {
+    if (err) {
+      console.error('Erro ao criar a avaliação:', err);
+      return res.status(500).send('Erro ao criar a avaliação.');
+    }
+    res.send('Avaliação criada com sucesso!');
+  });
+});
+
+// Rota para lançar notas
+app.post('/lancar-nota', (req, res) => {
+  const { curso_id, cadeira_id, ano, estudante_id, nome_avaliacao, nota, peso } = req.body;
+
+  const query = `
+    INSERT INTO avaliacao_nota (curso_id, cadeira_id, ano, estudante_id, nome_avaliacao, nota, peso) 
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  pool.query(query, [curso_id, cadeira_id, ano, estudante_id, nome_avaliacao, nota, peso], (err, results) => {
+    if (err) {
+      console.error('Erro ao lançar a nota:', err);
+      return res.status(500).send('Erro ao lançar a nota.');
+    }
+    res.send('Nota lançada com sucesso!');
+  });
 });
 
 app.listen(port, () => {
