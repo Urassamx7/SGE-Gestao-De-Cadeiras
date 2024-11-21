@@ -1,16 +1,18 @@
-import { pool } from "../../server";
+// src/queries/lancar-nota.js
+const pool = require("../db/db");
 
-export function lancarNota(
+async function lancarNota(
   curso_id,
   cadeira_id,
   ano,
   estudante_id,
   nome_avaliacao,
   nota,
-  peso
+  peso,
+  res // Recebendo o objeto `res` corretamente
 ) {
   const query = `
-    INSERT INTO avaliacao_nota (curso_id, cadeira_id, ano, estudante_id, nome_avaliacao, nota, peso) 
+    INSERT INTO avaliacoes_notas (curso_id, cadeira_id, ano, estudante_id, nome_avaliacao, nota, peso) 
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
 
@@ -26,3 +28,5 @@ export function lancarNota(
     }
   );
 }
+
+module.exports = lancarNota;

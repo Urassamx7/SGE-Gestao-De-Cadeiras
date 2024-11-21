@@ -1,36 +1,27 @@
-import { z } from "zod";
-import { insertValues, testSchema } from "./src/Schemas/projectSchema";
-import { lancarNota } from "./src/queries/lancar-nota";
-import { criarAvaliacao } from "./src/queries/criar-avaliacao";
 const express = require("express");
 require("dotenv").config();
-const mysql = require("mysql2");
 const app = express();
 const port = 3000;
-
+const { z } = require("zod");
+const lancarNota = require("./src/queries/lancar-nota");
+const criarAvaliacao = require("./src/queries/criar-avaliacao");
+const pool = require("./src/db/db");
+const { testSchema, insertValues } = require("./src/Schemas/projectSchema");
 app.use(express.json());
-
-// Configuração da pool de conexão para MySQL
-export const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
-});
 
 // Teste de conexão
 pool.getConnection((err, connection) => {
   if (err) {
     return console.error("Erro ao conectar à base de dados:", err.stack);
   }
-  app.get("/", (req, res) => {
-    return {
-      Hello: "World",
-    };
-  });
   console.log("Conectado ao MySQL!");
   connection.release(); // Libera a conexão
+});
+
+app.get("/", (req, res) => {
+  return {
+    Hello: "World",
+  };
 });
 
 // Rota para criar uma avaliação
@@ -54,7 +45,8 @@ app.post("/criar-avaliacao", (req, res) => {
       nome_avaliacao,
       peso,
       exame_normal,
-      exame_recorrencia
+      exame_recorrencia,
+      res
     );
   } catch (err) {
     if (err instanceof z.ZodError) {
@@ -90,7 +82,8 @@ app.post("/lancar-nota", (req, res) => {
       estudante_id,
       nome_avaliacao,
       nota,
-      peso
+      peso,
+      res
     );
   } catch (err) {
     if (err instanceof z.ZodError) {
@@ -105,7 +98,6 @@ app.post("/lancar-nota", (req, res) => {
     res.status(500).send("Erro ao processar a requisição.");
   }
 });
-
 app.listen(port, () => {
   console.log(`Servidor a correr em http://localhost:${port}`);
 });
